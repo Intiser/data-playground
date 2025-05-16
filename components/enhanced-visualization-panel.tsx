@@ -28,36 +28,24 @@ import { AlertCircle } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
-
-type ChartType = "bar" | "pie" | "line" | "scatter" | "area" | "donut" | "horizontal-bar" | "gauge"
-
-interface ChartConfig {
-  id: string
-  type: ChartType
-  title: string
-  xAxis: string
-  yAxis: string
-  showLegend: boolean
-  showGrid: boolean
-  showLabels: boolean
-  colorScheme: "purple" | "blue" | "green" | "orange" | "rainbow"
-  animation: boolean
-}
+import { useChartStore } from "@/lib/chart-store"
+import type { ChartType, ChartConfig } from "@/lib/types"
 
 export function EnhancedVisualizationPanel() {
   const { schema, data } = useDataStore()
-  const [charts, setCharts] = useState<ChartConfig[]>([])
-  const [activeChart, setActiveChart] = useState<string | null>(null)
+  const { charts, activeChart, setActiveChart, addChart, updateChart, removeChart } = useChartStore()
   const [error, setError] = useState<string | null>(null)
   const [fullscreen, setFullscreen] = useState<string | null>(null)
+  const [chartSizes, setChartSizes] = useState<{ width: number; height: number }>({ width: 800, height: 500 })
 
   const chartRefs = useRef<{ [key: string]: SVGSVGElement | null }>({})
+  const containerRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   const numberFields = schema.filter((field) => field.type === "number").map((field) => field.name)
   const allFields = schema.map((field) => field.name)
 
   // Add a new chart
-  const addChart = () => {
+  const handleAddChart = () => {
     if (schema.length === 0 || data.length === 0) {
       setError("You need to define a schema and add data before visualizing")
       return
@@ -79,30 +67,7 @@ export function EnhancedVisualizationPanel() {
       animation: true,
     }
 
-    setCharts([...charts, newChart])
-    setActiveChart(newChart.id)
-  }
-
-  // Remove a chart
-  const removeChart = (id: string) => {
-    const newCharts = charts.filter((chart) => chart.id !== id)
-    setCharts(newCharts)
-
-    if (activeChart === id) {
-      setActiveChart(newCharts.length > 0 ? newCharts[0].id : null)
-    }
-  }
-
-  // Update chart configuration
-  const updateChart = (id: string, updates: Partial<ChartConfig>) => {
-    setCharts(
-      charts.map((chart) => {
-        if (chart.id === id) {
-          return { ...chart, ...updates }
-        }
-        return chart
-      }),
-    )
+    addChart(newChart)
   }
 
   // Download chart as SVG
@@ -127,6 +92,30 @@ export function EnhancedVisualizationPanel() {
     setFullscreen(fullscreen === id ? null : id)
   }
 
+  // Update chart sizes based on container size
+  const updateChartSizes = () => {
+    if (fullscreen) {
+      setChartSizes({
+        width: Math.max(window.innerWidth - 40, 300),
+        height: Math.max(window.innerHeight - 150, 300),
+      })
+      return
+    }
+
+    const containerEl = containerRefs.current[activeChart || ""]
+    if (!containerEl) return
+
+    const containerWidth = containerEl.clientWidth || 300
+    // Adjust height based on screen size
+    const containerHeight =
+      window.innerWidth < 640 ? Math.min(350, window.innerHeight - 200) : Math.min(500, window.innerHeight - 300)
+
+    setChartSizes({
+      width: Math.max(containerWidth - 20, 280),
+      height: containerHeight,
+    })
+  }
+
   // Render a chart based on its configuration
   const renderChart = (config: ChartConfig) => {
     const svgRef = chartRefs.current[config.id]
@@ -135,9 +124,14 @@ export function EnhancedVisualizationPanel() {
     // Clear previous chart
     d3.select(svgRef).selectAll("*").remove()
 
-    const width = 800
-    const height = 500
-    const margin = { top: 50, right: 50, bottom: 70, left: 70 }
+    const width = chartSizes.width
+    const height = chartSizes.height
+    const margin = {
+      top: Math.max(20, Math.floor(height * 0.08)),
+      right: Math.max(20, Math.floor(width * 0.08)),
+      bottom: Math.max(30, Math.floor(height * 0.12)),
+      left: Math.max(40, Math.floor(width * 0.12)),
+    }
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
@@ -245,8 +239,9 @@ export function EnhancedVisualizationPanel() {
       .selectAll("text")
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "end")
+      .style("font-size", "12px")
 
-    svg.append("g").call(d3.axisLeft(yScale))
+    svg.append("g").call(d3.axisLeft(yScale)).selectAll("text").style("font-size", "12px")
 
     // Grid
     if (config.showGrid) {
@@ -305,6 +300,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", innerHeight + 50)
         .attr("text-anchor", "middle")
         .text(config.xAxis)
+        .style("font-size", "14px")
 
       svg
         .append("text")
@@ -313,6 +309,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", -50)
         .attr("text-anchor", "middle")
         .text(config.yAxis)
+        .style("font-size", "14px")
     }
   }
 
@@ -336,9 +333,14 @@ export function EnhancedVisualizationPanel() {
       .range([0, innerWidth])
 
     // Axes
-    svg.append("g").call(d3.axisLeft(yScale))
+    svg.append("g").call(d3.axisLeft(yScale)).selectAll("text").style("font-size", "12px")
 
-    svg.append("g").attr("transform", `translate(0,${innerHeight})`).call(d3.axisBottom(xScale))
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${innerHeight})`)
+      .call(d3.axisBottom(xScale))
+      .selectAll("text")
+      .style("font-size", "12px")
 
     // Grid
     if (config.showGrid) {
@@ -394,6 +396,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", innerHeight + 50)
         .attr("text-anchor", "middle")
         .text(config.yAxis)
+        .style("font-size", "14px")
 
       svg
         .append("text")
@@ -402,6 +405,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", -50)
         .attr("text-anchor", "middle")
         .text(config.xAxis)
+        .style("font-size", "14px")
     }
   }
 
@@ -482,6 +486,7 @@ export function EnhancedVisualizationPanel() {
         .append("text")
         .attr("dy", ".35em")
         .text((d) => d.data.key)
+        .style("font-size", "12px")
 
       function midAngle(d: d3.PieArcDatum<{ key: string; value: number }>) {
         return d.startAngle + (d.endAngle - d.startAngle) / 2
@@ -494,7 +499,6 @@ export function EnhancedVisualizationPanel() {
           return `translate(${pos})`
         })
         .style("text-anchor", (d) => (midAngle(d) < Math.PI ? "start" : "end"))
-        .style("font-size", "12px")
 
       // Add lines connecting pie slices to labels
       g.selectAll("polyline")
@@ -618,6 +622,7 @@ export function EnhancedVisualizationPanel() {
         .attr("class", "label-text")
         .attr("dy", ".35em")
         .text((d) => d.data.key)
+        .style("font-size", "12px")
 
       function midAngle(d: d3.PieArcDatum<{ key: string; value: number }>) {
         return d.startAngle + (d.endAngle - d.startAngle) / 2
@@ -630,7 +635,6 @@ export function EnhancedVisualizationPanel() {
           return `translate(${pos})`
         })
         .style("text-anchor", (d) => (midAngle(d) < Math.PI ? "start" : "end"))
-        .style("font-size", "12px")
 
       // Add lines connecting pie slices to labels
       g.selectAll("polyline")
@@ -732,8 +736,9 @@ export function EnhancedVisualizationPanel() {
       .selectAll("text")
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "end")
+      .style("font-size", "12px")
 
-    svg.append("g").call(d3.axisLeft(yScale))
+    svg.append("g").call(d3.axisLeft(yScale)).selectAll("text").style("font-size", "12px")
 
     // Grid
     if (config.showGrid) {
@@ -811,6 +816,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", innerHeight + 50)
         .attr("text-anchor", "middle")
         .text(config.xAxis)
+        .style("font-size", "14px")
 
       svg
         .append("text")
@@ -819,6 +825,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", -50)
         .attr("text-anchor", "middle")
         .text(config.yAxis)
+        .style("font-size", "14px")
     }
   }
 
@@ -859,8 +866,9 @@ export function EnhancedVisualizationPanel() {
       .selectAll("text")
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "end")
+      .style("font-size", "12px")
 
-    svg.append("g").call(d3.axisLeft(yScale))
+    svg.append("g").call(d3.axisLeft(yScale)).selectAll("text").style("font-size", "12px")
 
     // Grid
     if (config.showGrid) {
@@ -976,6 +984,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", innerHeight + 50)
         .attr("text-anchor", "middle")
         .text(config.xAxis)
+        .style("font-size", "14px")
 
       svg
         .append("text")
@@ -984,6 +993,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", -50)
         .attr("text-anchor", "middle")
         .text(config.yAxis)
+        .style("font-size", "14px")
     }
   }
 
@@ -1011,9 +1021,14 @@ export function EnhancedVisualizationPanel() {
       .range([innerHeight, 0])
 
     // Axes
-    svg.append("g").attr("transform", `translate(0,${innerHeight})`).call(d3.axisBottom(xScale))
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${innerHeight})`)
+      .call(d3.axisBottom(xScale))
+      .selectAll("text")
+      .style("font-size", "12px")
 
-    svg.append("g").call(d3.axisLeft(yScale))
+    svg.append("g").call(d3.axisLeft(yScale)).selectAll("text").style("font-size", "12px")
 
     // Grid
     if (config.showGrid) {
@@ -1077,6 +1092,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", innerHeight + 50)
         .attr("text-anchor", "middle")
         .text(config.xAxis)
+        .style("font-size", "14px")
 
       svg
         .append("text")
@@ -1085,6 +1101,7 @@ export function EnhancedVisualizationPanel() {
         .attr("y", -50)
         .attr("text-anchor", "middle")
         .text(config.yAxis)
+        .style("font-size", "14px")
     }
   }
 
@@ -1217,23 +1234,58 @@ export function EnhancedVisualizationPanel() {
         renderChart(chart)
       }
     })
-  }, [charts, data, schema])
+  }, [charts, data, schema, chartSizes])
 
   // Set default chart when none exists
   useEffect(() => {
     if (schema.length > 0 && data.length > 0 && charts.length === 0) {
-      addChart()
+      handleAddChart()
     }
-  }, [schema, data])
+  }, [schema, data, charts.length])
+
+  // Update chart sizes on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      updateChartSizes()
+    }
+
+    window.addEventListener("resize", handleResize)
+    handleResize()
+
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [fullscreen, activeChart])
+
+  useEffect(() => {
+    const containers = Object.values(containerRefs.current).filter(Boolean) as HTMLDivElement[]
+
+    if (typeof ResizeObserver !== "undefined") {
+      const resizeObserver = new ResizeObserver(() => {
+        updateChartSizes()
+      })
+
+      containers.forEach((container) => {
+        if (container) resizeObserver.observe(container)
+      })
+
+      return () => {
+        containers.forEach((container) => {
+          if (container) resizeObserver.unobserve(container)
+        })
+        resizeObserver.disconnect()
+      }
+    }
+  }, [charts, activeChart])
 
   if (schema.length === 0) {
     return (
-      <div className="text-center py-16 px-4 bg-muted/10 rounded-xl">
-        <h2 className="text-2xl font-bold tracking-tight mb-4 gradient-heading">Visualization</h2>
-        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+      <div className="text-center py-8 sm:py-16 px-4 bg-muted/10 rounded-xl">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-4 gradient-heading">Visualization</h2>
+        <p className="text-sm sm:text-base text-muted-foreground mb-6 max-w-md mx-auto">
           You need to define your schema first before you can visualize data.
         </p>
-        <Button variant="outline" asChild className="rounded-lg">
+        <Button variant="outline" asChild className="rounded-lg text-sm">
           <a href="#schema">Go to Schema Builder</a>
         </Button>
       </div>
@@ -1242,12 +1294,12 @@ export function EnhancedVisualizationPanel() {
 
   if (data.length === 0) {
     return (
-      <div className="text-center py-16 px-4 bg-muted/10 rounded-xl">
-        <h2 className="text-2xl font-bold tracking-tight mb-4 gradient-heading">Visualization</h2>
-        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+      <div className="text-center py-8 sm:py-16 px-4 bg-muted/10 rounded-xl">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-4 gradient-heading">Visualization</h2>
+        <p className="text-sm sm:text-base text-muted-foreground mb-6 max-w-md mx-auto">
           You need to add some data before you can visualize it.
         </p>
-        <Button variant="outline" asChild className="rounded-lg">
+        <Button variant="outline" asChild className="rounded-lg text-sm">
           <a href="#data">Go to Data Entry</a>
         </Button>
       </div>
@@ -1259,15 +1311,15 @@ export function EnhancedVisualizationPanel() {
     const chart = charts.find((c) => c.id === fullscreen)
     if (chart) {
       return (
-        <div className="fixed inset-0 z-50 bg-background p-8 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-background p-4 sm:p-8 flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold gradient-heading">{chart.title}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold gradient-heading">{chart.title}</h2>
             <Button variant="outline" size="icon" onClick={() => setFullscreen(null)} className="rounded-full">
               <Minimize2 className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex-1 border rounded-xl p-6 overflow-auto bg-gradient-to-br from-background to-muted/10 shadow-sm chart-container">
-            <div className="flex justify-center h-full">
+          <div className="flex-1 border rounded-xl p-4 sm:p-6 overflow-auto bg-gradient-to-br from-background to-muted/10 shadow-sm chart-container">
+            <div className="flex justify-center h-full" ref={(el) => (containerRefs.current[chart.id] = el)}>
               <svg
                 ref={(el) => (chartRefs.current[chart.id] = el)}
                 className="max-w-full h-full"
@@ -1281,13 +1333,15 @@ export function EnhancedVisualizationPanel() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight gradient-heading">Visualization</h2>
-          <p className="text-muted-foreground mt-2">Create interactive charts to visualize your data.</p>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight gradient-heading">Visualization</h2>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+            Create interactive charts to visualize your data.
+          </p>
         </div>
-        <Button onClick={addChart} className="gap-2 rounded-lg">
+        <Button onClick={handleAddChart} className="gap-2 rounded-lg w-full sm:w-auto text-sm">
           <Plus className="h-4 w-4" /> Add Chart
         </Button>
       </div>
@@ -1301,9 +1355,11 @@ export function EnhancedVisualizationPanel() {
       )}
 
       {charts.length === 0 ? (
-        <div className="text-center py-12 px-4 bg-muted/10 rounded-xl">
-          <p className="text-muted-foreground mb-6">Click "Add Chart" to create your first visualization.</p>
-          <Button onClick={addChart} className="gap-2 rounded-lg">
+        <div className="text-center py-8 sm:py-12 px-4 bg-muted/10 rounded-xl">
+          <p className="text-sm sm:text-base text-muted-foreground mb-6">
+            Click "Add Chart" to create your first visualization.
+          </p>
+          <Button onClick={handleAddChart} className="gap-2 rounded-lg text-sm">
             <Plus className="h-4 w-4" /> Add Chart
           </Button>
         </div>
@@ -1311,129 +1367,141 @@ export function EnhancedVisualizationPanel() {
         <Tabs value={activeChart || charts[0].id} onValueChange={setActiveChart} className="w-full">
           <TabsList className="w-full flex overflow-x-auto p-1 rounded-xl">
             {charts.map((chart) => (
-              <TabsTrigger key={chart.id} value={chart.id} className="rounded-lg flex-shrink-0">
+              <TabsTrigger key={chart.id} value={chart.id} className="rounded-lg flex-shrink-0 text-xs sm:text-sm">
                 {chart.title}
               </TabsTrigger>
             ))}
           </TabsList>
 
           {charts.map((chart) => (
-            <TabsContent key={chart.id} value={chart.id} className="mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <TabsContent key={chart.id} value={chart.id} className="mt-4 sm:mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="lg:col-span-2 border shadow-sm rounded-xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 flex flex-row justify-between items-center">
+                  <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 flex flex-row justify-between items-center p-3 sm:p-6">
                     <div>
-                      <CardTitle>{chart.title}</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-lg sm:text-xl">{chart.title}</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm">
                         {chart.type.charAt(0).toUpperCase() + chart.type.slice(1).replace("-", " ")} Chart
                       </CardDescription>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 sm:gap-2">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => renderChart(chart)}
-                        className="rounded-full h-8 w-8"
+                        className="rounded-full h-7 w-7 sm:h-8 sm:w-8"
                         title="Reload chart"
                       >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => toggleFullscreen(chart.id)}
-                        className="rounded-full h-8 w-8"
+                        className="rounded-full h-7 w-7 sm:h-8 sm:w-8"
                       >
-                        <Maximize2 className="h-4 w-4" />
+                        <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => downloadChart(chart.id)}
-                        className="rounded-full h-8 w-8"
+                        className="rounded-full h-7 w-7 sm:h-8 sm:w-8"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="destructive"
                         size="icon"
                         onClick={() => removeChart(chart.id)}
-                        className="rounded-full h-8 w-8"
+                        className="rounded-full h-7 w-7 sm:h-8 sm:w-8"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 overflow-auto chart-container">
-                    <div className="flex justify-center">
-                      <svg ref={(el) => (chartRefs.current[chart.id] = el)} className="max-w-full" key={chart.id}></svg>
+                  <CardContent className="p-3 sm:p-6 overflow-auto chart-container">
+                    <div className="flex justify-center" ref={(el) => (containerRefs.current[chart.id] = el)}>
+                      <svg
+                        ref={(el) => (chartRefs.current[chart.id] = el)}
+                        className="max-w-full"
+                        key={chart.id}
+                        width={chartSizes.width}
+                        height={chartSizes.height}
+                      ></svg>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card className="border shadow-sm rounded-xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
-                    <CardTitle>Chart Settings</CardTitle>
-                    <CardDescription>Configure your visualization</CardDescription>
+                  <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 p-3 sm:p-6">
+                    <CardTitle className="text-lg sm:text-xl">Chart Settings</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Configure your visualization</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor={`chart-title-${chart.id}`}>Chart Title</Label>
+                  <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor={`chart-title-${chart.id}`} className="text-sm">
+                        Chart Title
+                      </Label>
                       <Input
                         id={`chart-title-${chart.id}`}
                         value={chart.title}
                         onChange={(e) => updateChart(chart.id, { title: e.target.value })}
-                        className="rounded-lg"
+                        className="rounded-lg text-sm h-8 sm:h-9"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor={`chart-type-${chart.id}`}>Chart Type</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor={`chart-type-${chart.id}`} className="text-sm">
+                        Chart Type
+                      </Label>
                       <Select
                         value={chart.type}
                         onValueChange={(value) => updateChart(chart.id, { type: value as ChartType })}
                       >
-                        <SelectTrigger id={`chart-type-${chart.id}`} className="gap-2 rounded-lg">
+                        <SelectTrigger id={`chart-type-${chart.id}`} className="gap-2 rounded-lg text-sm h-8 sm:h-9">
                           <SelectValue placeholder="Select chart type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="bar" className="flex items-center gap-2">
-                            <BarChart className="h-4 w-4" /> Bar Chart
+                          <SelectItem value="bar" className="flex items-center gap-2 text-sm">
+                            <BarChart className="h-3 w-3 sm:h-4 sm:w-4" /> Bar Chart
                           </SelectItem>
-                          <SelectItem value="horizontal-bar" className="flex items-center gap-2">
-                            <BarChartHorizontal className="h-4 w-4" /> Horizontal Bar
+                          <SelectItem value="horizontal-bar" className="flex items-center gap-2 text-sm">
+                            <BarChartHorizontal className="h-3 w-3 sm:h-4 sm:w-4" /> Horizontal Bar
                           </SelectItem>
-                          <SelectItem value="pie" className="flex items-center gap-2">
-                            <PieChart className="h-4 w-4" /> Pie Chart
+                          <SelectItem value="pie" className="flex items-center gap-2 text-sm">
+                            <PieChart className="h-3 w-3 sm:h-4 sm:w-4" /> Pie Chart
                           </SelectItem>
-                          <SelectItem value="donut" className="flex items-center gap-2">
-                            <PieChart className="h-4 w-4" /> Donut Chart
+                          <SelectItem value="donut" className="flex items-center gap-2 text-sm">
+                            <PieChart className="h-3 w-3 sm:h-4 sm:w-4" /> Donut Chart
                           </SelectItem>
-                          <SelectItem value="line" className="flex items-center gap-2">
-                            <LineChart className="h-4 w-4" /> Line Chart
+                          <SelectItem value="line" className="flex items-center gap-2 text-sm">
+                            <LineChart className="h-3 w-3 sm:h-4 sm:w-4" /> Line Chart
                           </SelectItem>
-                          <SelectItem value="area" className="flex items-center gap-2">
-                            <AreaChart className="h-4 w-4" /> Area Chart
+                          <SelectItem value="area" className="flex items-center gap-2 text-sm">
+                            <AreaChart className="h-3 w-3 sm:h-4 sm:w-4" /> Area Chart
                           </SelectItem>
-                          <SelectItem value="scatter" className="flex items-center gap-2">
-                            <ScatterChartIcon className="h-4 w-4" /> Scatter Plot
+                          <SelectItem value="scatter" className="flex items-center gap-2 text-sm">
+                            <ScatterChartIcon className="h-3 w-3 sm:h-4 sm:w-4" /> Scatter Plot
                           </SelectItem>
-                          <SelectItem value="gauge" className="flex items-center gap-2">
-                            <Gauge className="h-4 w-4" /> Gauge Chart
+                          <SelectItem value="gauge" className="flex items-center gap-2 text-sm">
+                            <Gauge className="h-3 w-3 sm:h-4 sm:w-4" /> Gauge Chart
                           </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor={`x-axis-${chart.id}`}>X-Axis / Category</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor={`x-axis-${chart.id}`} className="text-sm">
+                        X-Axis / Category
+                      </Label>
                       <Select value={chart.xAxis} onValueChange={(value) => updateChart(chart.id, { xAxis: value })}>
-                        <SelectTrigger id={`x-axis-${chart.id}`} className="rounded-lg">
+                        <SelectTrigger id={`x-axis-${chart.id}`} className="rounded-lg text-sm h-8 sm:h-9">
                           <SelectValue placeholder="Select field" />
                         </SelectTrigger>
                         <SelectContent>
                           {allFields.map((field) => (
-                            <SelectItem key={field} value={field}>
+                            <SelectItem key={field} value={field} className="text-sm">
                               {field}
                             </SelectItem>
                           ))}
@@ -1442,15 +1510,17 @@ export function EnhancedVisualizationPanel() {
                     </div>
 
                     {chart.type !== "pie" && chart.type !== "donut" && chart.type !== "gauge" && (
-                      <div className="space-y-2">
-                        <Label htmlFor={`y-axis-${chart.id}`}>Y-Axis / Value</Label>
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor={`y-axis-${chart.id}`} className="text-sm">
+                          Y-Axis / Value
+                        </Label>
                         <Select value={chart.yAxis} onValueChange={(value) => updateChart(chart.id, { yAxis: value })}>
-                          <SelectTrigger id={`y-axis-${chart.id}`} className="rounded-lg">
+                          <SelectTrigger id={`y-axis-${chart.id}`} className="rounded-lg text-sm h-8 sm:h-9">
                             <SelectValue placeholder="Select field" />
                           </SelectTrigger>
                           <SelectContent>
                             {numberFields.map((field) => (
-                              <SelectItem key={field} value={field}>
+                              <SelectItem key={field} value={field} className="text-sm">
                                 {field}
                               </SelectItem>
                             ))}
@@ -1459,8 +1529,10 @@ export function EnhancedVisualizationPanel() {
                       </div>
                     )}
 
-                    <div className="space-y-2">
-                      <Label htmlFor={`color-scheme-${chart.id}`}>Color Scheme</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor={`color-scheme-${chart.id}`} className="text-sm">
+                        Color Scheme
+                      </Label>
                       <Select
                         value={chart.colorScheme}
                         onValueChange={(value) =>
@@ -1469,21 +1541,33 @@ export function EnhancedVisualizationPanel() {
                           })
                         }
                       >
-                        <SelectTrigger id={`color-scheme-${chart.id}`} className="rounded-lg">
+                        <SelectTrigger id={`color-scheme-${chart.id}`} className="rounded-lg text-sm h-8 sm:h-9">
                           <SelectValue placeholder="Select color scheme" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="purple">Purple</SelectItem>
-                          <SelectItem value="blue">Blue</SelectItem>
-                          <SelectItem value="green">Green</SelectItem>
-                          <SelectItem value="orange">Orange</SelectItem>
-                          <SelectItem value="rainbow">Rainbow</SelectItem>
+                          <SelectItem value="purple" className="text-sm">
+                            Purple
+                          </SelectItem>
+                          <SelectItem value="blue" className="text-sm">
+                            Blue
+                          </SelectItem>
+                          <SelectItem value="green" className="text-sm">
+                            Green
+                          </SelectItem>
+                          <SelectItem value="orange" className="text-sm">
+                            Orange
+                          </SelectItem>
+                          <SelectItem value="rainbow" className="text-sm">
+                            Rainbow
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <Label htmlFor={`show-legend-${chart.id}`}>Show Legend</Label>
+                      <Label htmlFor={`show-legend-${chart.id}`} className="text-sm">
+                        Show Legend
+                      </Label>
                       <Switch
                         id={`show-legend-${chart.id}`}
                         checked={chart.showLegend}
@@ -1492,7 +1576,9 @@ export function EnhancedVisualizationPanel() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <Label htmlFor={`show-grid-${chart.id}`}>Show Grid</Label>
+                      <Label htmlFor={`show-grid-${chart.id}`} className="text-sm">
+                        Show Grid
+                      </Label>
                       <Switch
                         id={`show-grid-${chart.id}`}
                         checked={chart.showGrid}
@@ -1501,7 +1587,9 @@ export function EnhancedVisualizationPanel() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <Label htmlFor={`show-labels-${chart.id}`}>Show Labels</Label>
+                      <Label htmlFor={`show-labels-${chart.id}`} className="text-sm">
+                        Show Labels
+                      </Label>
                       <Switch
                         id={`show-labels-${chart.id}`}
                         checked={chart.showLabels}
@@ -1510,7 +1598,9 @@ export function EnhancedVisualizationPanel() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <Label htmlFor={`animation-${chart.id}`}>Animation</Label>
+                      <Label htmlFor={`animation-${chart.id}`} className="text-sm">
+                        Animation
+                      </Label>
                       <Switch
                         id={`animation-${chart.id}`}
                         checked={chart.animation}
@@ -1518,12 +1608,12 @@ export function EnhancedVisualizationPanel() {
                       />
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/10 border-t p-4">
+                  <CardFooter className="bg-muted/10 border-t p-3 sm:p-4">
                     <Button
                       onClick={() => {
                         renderChart(chart)
                       }}
-                      className="w-full rounded-lg"
+                      className="w-full rounded-lg text-sm"
                     >
                       Update Chart
                     </Button>

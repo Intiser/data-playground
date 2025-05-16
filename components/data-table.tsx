@@ -43,7 +43,7 @@ export function DataTable() {
   }
 
   const loadSampleData = () => {
-    // First, identify the current schema type
+    // First, identify the current schema type by checking field names
     const schemaFieldNames = schema.map((field) => field.name.toLowerCase())
 
     // Clear existing data
@@ -51,9 +51,8 @@ export function DataTable() {
 
     // Product Sales Data
     if (
-      schemaFieldNames.includes("product") &&
-      schemaFieldNames.includes("category") &&
-      schemaFieldNames.includes("sales")
+      schemaFieldNames.some((name) => name.includes("product")) &&
+      schemaFieldNames.some((name) => name.includes("category") || name.includes("sales"))
     ) {
       const productData = [
         { Product: "Laptop", Category: "Electronics", Sales: "1200", Rating: "4.5", ReleaseDate: "2023-01-15" },
@@ -67,11 +66,29 @@ export function DataTable() {
         { Product: "Smart Watch", Category: "Wearables", Sales: "750", Rating: "4.1", ReleaseDate: "2023-08-05" },
         { Product: "Camera", Category: "Electronics", Sales: "890", Rating: "4.7", ReleaseDate: "2023-09-10" },
       ]
-      productData.forEach((row) => addRow(row))
+
+      // Map sample data to match the actual schema field names
+      const mappedData = productData.map((item) => {
+        const newRow: DataRow = {}
+        schema.forEach((field) => {
+          const fieldLower = field.name.toLowerCase()
+          if (fieldLower.includes("product")) newRow[field.name] = item.Product
+          else if (fieldLower.includes("category")) newRow[field.name] = item.Category
+          else if (fieldLower.includes("sales")) newRow[field.name] = item.Sales
+          else if (fieldLower.includes("rating")) newRow[field.name] = item.Rating
+          else if (fieldLower.includes("date")) newRow[field.name] = item.ReleaseDate
+        })
+        return newRow
+      })
+
+      mappedData.forEach((row) => addRow(row))
     }
 
     // Weather Data
-    else if (schemaFieldNames.includes("location") && schemaFieldNames.includes("temperature")) {
+    else if (
+      schemaFieldNames.some((name) => name.includes("location") || name.includes("city")) &&
+      schemaFieldNames.some((name) => name.includes("temp") || name.includes("weather"))
+    ) {
       const weatherData = [
         { Location: "New York", Season: "Winter", Temperature: "32", Precipitation: "4.5", RecordDate: "2023-01-15" },
         {
@@ -96,11 +113,29 @@ export function DataTable() {
         { Location: "Seattle", Season: "Winter", Temperature: "45", Precipitation: "5.8", RecordDate: "2023-01-15" },
         { Location: "Denver", Season: "Summer", Temperature: "90", Precipitation: "1.5", RecordDate: "2023-07-15" },
       ]
-      weatherData.forEach((row) => addRow(row))
+
+      // Map sample data to match the actual schema field names
+      const mappedData = weatherData.map((item) => {
+        const newRow: DataRow = {}
+        schema.forEach((field) => {
+          const fieldLower = field.name.toLowerCase()
+          if (fieldLower.includes("location") || fieldLower.includes("city")) newRow[field.name] = item.Location
+          else if (fieldLower.includes("season")) newRow[field.name] = item.Season
+          else if (fieldLower.includes("temp")) newRow[field.name] = item.Temperature
+          else if (fieldLower.includes("precip") || fieldLower.includes("rain")) newRow[field.name] = item.Precipitation
+          else if (fieldLower.includes("date")) newRow[field.name] = item.RecordDate
+        })
+        return newRow
+      })
+
+      mappedData.forEach((row) => addRow(row))
     }
 
     // Student Performance
-    else if (schemaFieldNames.includes("student") && schemaFieldNames.includes("score")) {
+    else if (
+      schemaFieldNames.some((name) => name.includes("student") || name.includes("name")) &&
+      schemaFieldNames.some((name) => name.includes("score") || name.includes("grade"))
+    ) {
       const studentData = [
         { Student: "Alex", Subject: "Math", Score: "92", StudyHours: "8.5", ExamDate: "2023-05-10" },
         { Student: "Emma", Subject: "Math", Score: "88", StudyHours: "7.0", ExamDate: "2023-05-10" },
@@ -113,180 +148,22 @@ export function DataTable() {
         { Student: "Liam", Subject: "Math", Score: "90", StudyHours: "8.0", ExamDate: "2023-05-10" },
         { Student: "Sophia", Subject: "Science", Score: "93", StudyHours: "8.5", ExamDate: "2023-05-12" },
       ]
-      studentData.forEach((row) => addRow(row))
-    }
 
-    // Website Analytics
-    else if (schemaFieldNames.includes("page") && schemaFieldNames.includes("visitors")) {
-      const analyticsData = [
-        { Page: "Home", Device: "Desktop", Visitors: "1250", ConversionRate: "3.2", Date: "2023-06-01" },
-        { Page: "Products", Device: "Desktop", Visitors: "980", ConversionRate: "4.5", Date: "2023-06-01" },
-        { Page: "Checkout", Device: "Desktop", Visitors: "540", ConversionRate: "8.1", Date: "2023-06-01" },
-        { Page: "Home", Device: "Mobile", Visitors: "1820", ConversionRate: "2.1", Date: "2023-06-01" },
-        { Page: "Products", Device: "Mobile", Visitors: "1340", ConversionRate: "3.2", Date: "2023-06-01" },
-        { Page: "Checkout", Device: "Mobile", Visitors: "680", ConversionRate: "5.4", Date: "2023-06-01" },
-        { Page: "Home", Device: "Tablet", Visitors: "420", ConversionRate: "2.8", Date: "2023-06-01" },
-        { Page: "Products", Device: "Tablet", Visitors: "310", ConversionRate: "3.9", Date: "2023-06-01" },
-        { Page: "Blog", Device: "Desktop", Visitors: "750", ConversionRate: "2.5", Date: "2023-06-01" },
-        { Page: "Contact", Device: "Mobile", Visitors: "480", ConversionRate: "1.8", Date: "2023-06-01" },
-      ]
-      analyticsData.forEach((row) => addRow(row))
-    }
+      // Map sample data to match the actual schema field names
+      const mappedData = studentData.map((item) => {
+        const newRow: DataRow = {}
+        schema.forEach((field) => {
+          const fieldLower = field.name.toLowerCase()
+          if (fieldLower.includes("student") || fieldLower.includes("name")) newRow[field.name] = item.Student
+          else if (fieldLower.includes("subject")) newRow[field.name] = item.Subject
+          else if (fieldLower.includes("score") || fieldLower.includes("grade")) newRow[field.name] = item.Score
+          else if (fieldLower.includes("hours") || fieldLower.includes("study")) newRow[field.name] = item.StudyHours
+          else if (fieldLower.includes("date")) newRow[field.name] = item.ExamDate
+        })
+        return newRow
+      })
 
-    // Financial Data
-    else if (schemaFieldNames.includes("stock") || schemaFieldNames.includes("price")) {
-      const financialData = [
-        { Stock: "AAPL", Sector: "Technology", Price: "182.52", Volume: "45.2", TradeDate: "2023-07-01" },
-        { Stock: "MSFT", Sector: "Technology", Price: "338.11", Volume: "32.1", TradeDate: "2023-07-01" },
-        { Stock: "AMZN", Sector: "Consumer", Price: "129.78", Volume: "38.5", TradeDate: "2023-07-01" },
-        { Stock: "GOOGL", Sector: "Technology", Price: "119.70", Volume: "29.8", TradeDate: "2023-07-01" },
-        { Stock: "JPM", Sector: "Financial", Price: "145.15", Volume: "18.2", TradeDate: "2023-07-01" },
-        { Stock: "BAC", Sector: "Financial", Price: "28.47", Volume: "22.6", TradeDate: "2023-07-01" },
-        { Stock: "PFE", Sector: "Healthcare", Price: "36.32", Volume: "15.4", TradeDate: "2023-07-01" },
-        { Stock: "JNJ", Sector: "Healthcare", Price: "165.52", Volume: "12.8", TradeDate: "2023-07-01" },
-        { Stock: "TSLA", Sector: "Automotive", Price: "261.77", Volume: "51.3", TradeDate: "2023-07-01" },
-        { Stock: "NVDA", Sector: "Technology", Price: "423.85", Volume: "47.6", TradeDate: "2023-07-01" },
-      ]
-      financialData.forEach((row) => addRow(row))
-    }
-
-    // Health Metrics
-    else if (schemaFieldNames.includes("patient") || schemaFieldNames.includes("bloodsugar")) {
-      const healthData = [
-        { Patient: "P001", Condition: "Diabetes", BloodSugar: "142", Weight: "78.5", CheckupDate: "2023-04-10" },
-        { Patient: "P002", Condition: "Hypertension", BloodSugar: "105", Weight: "82.3", CheckupDate: "2023-04-11" },
-        { Patient: "P003", Condition: "Healthy", BloodSugar: "98", Weight: "65.7", CheckupDate: "2023-04-12" },
-        { Patient: "P004", Condition: "Diabetes", BloodSugar: "156", Weight: "91.2", CheckupDate: "2023-04-13" },
-        { Patient: "P005", Condition: "Hypertension", BloodSugar: "110", Weight: "75.8", CheckupDate: "2023-04-14" },
-        { Patient: "P006", Condition: "Healthy", BloodSugar: "92", Weight: "68.4", CheckupDate: "2023-04-15" },
-        { Patient: "P007", Condition: "Diabetes", BloodSugar: "138", Weight: "84.1", CheckupDate: "2023-04-16" },
-        { Patient: "P008", Condition: "Hypertension", BloodSugar: "118", Weight: "79.6", CheckupDate: "2023-04-17" },
-        { Patient: "P009", Condition: "Obesity", BloodSugar: "115", Weight: "102.3", CheckupDate: "2023-04-18" },
-        { Patient: "P010", Condition: "Anemia", BloodSugar: "90", Weight: "61.2", CheckupDate: "2023-04-19" },
-      ]
-      healthData.forEach((row) => addRow(row))
-    }
-
-    // Social Media Statistics
-    else if (schemaFieldNames.includes("platform") || schemaFieldNames.includes("likes")) {
-      const socialData = [
-        { Platform: "Instagram", ContentType: "Photo", Likes: "1250", Comments: "85", PostDate: "2023-03-05" },
-        { Platform: "Instagram", ContentType: "Video", Likes: "1820", Comments: "132", PostDate: "2023-03-06" },
-        { Platform: "Twitter", ContentType: "Text", Likes: "450", Comments: "28", PostDate: "2023-03-07" },
-        { Platform: "Twitter", ContentType: "Image", Likes: "680", Comments: "42", PostDate: "2023-03-08" },
-        { Platform: "Facebook", ContentType: "Photo", Likes: "520", Comments: "35", PostDate: "2023-03-09" },
-        { Platform: "Facebook", ContentType: "Video", Likes: "980", Comments: "76", PostDate: "2023-03-10" },
-        { Platform: "TikTok", ContentType: "Video", Likes: "2450", Comments: "185", PostDate: "2023-03-11" },
-        { Platform: "YouTube", ContentType: "Video", Likes: "1750", Comments: "210", PostDate: "2023-03-12" },
-        { Platform: "LinkedIn", ContentType: "Article", Likes: "320", Comments: "45", PostDate: "2023-03-13" },
-        { Platform: "Pinterest", ContentType: "Image", Likes: "890", Comments: "25", PostDate: "2023-03-14" },
-      ]
-      socialData.forEach((row) => addRow(row))
-    }
-
-    // Travel Destinations
-    else if (schemaFieldNames.includes("destination") || schemaFieldNames.includes("region")) {
-      const travelData = [
-        { Destination: "Paris", Region: "Europe", Visitors: "8500000", Rating: "4.7", Season: "2023-06-15" },
-        { Destination: "Tokyo", Region: "Asia", Visitors: "9200000", Rating: "4.8", Season: "2023-06-15" },
-        { Destination: "New York", Region: "North America", Visitors: "12500000", Rating: "4.6", Season: "2023-06-15" },
-        { Destination: "Rome", Region: "Europe", Visitors: "7800000", Rating: "4.5", Season: "2023-06-15" },
-        { Destination: "Bangkok", Region: "Asia", Visitors: "11500000", Rating: "4.4", Season: "2023-06-15" },
-        { Destination: "London", Region: "Europe", Visitors: "9700000", Rating: "4.6", Season: "2023-06-15" },
-        { Destination: "Dubai", Region: "Middle East", Visitors: "8200000", Rating: "4.7", Season: "2023-06-15" },
-        { Destination: "Sydney", Region: "Oceania", Visitors: "6400000", Rating: "4.8", Season: "2023-06-15" },
-        { Destination: "Barcelona", Region: "Europe", Visitors: "7100000", Rating: "4.6", Season: "2023-06-15" },
-        { Destination: "Bali", Region: "Asia", Visitors: "5800000", Rating: "4.9", Season: "2023-06-15" },
-      ]
-      travelData.forEach((row) => addRow(row))
-    }
-
-    // Restaurant Ratings
-    else if (schemaFieldNames.includes("restaurant") || schemaFieldNames.includes("cuisine")) {
-      const restaurantData = [
-        { Restaurant: "Bella Italia", Cuisine: "Italian", Price: "28", Rating: "4.6", OpenDate: "2022-05-10" },
-        { Restaurant: "Sushi Palace", Cuisine: "Japanese", Price: "42", Rating: "4.8", OpenDate: "2021-08-15" },
-        { Restaurant: "Taco Fiesta", Cuisine: "Mexican", Price: "18", Rating: "4.3", OpenDate: "2022-02-20" },
-        { Restaurant: "Burger Joint", Cuisine: "American", Price: "15", Rating: "4.1", OpenDate: "2021-11-05" },
-        { Restaurant: "Spice Garden", Cuisine: "Indian", Price: "25", Rating: "4.5", OpenDate: "2022-07-12" },
-        { Restaurant: "Le Bistro", Cuisine: "French", Price: "45", Rating: "4.7", OpenDate: "2021-04-30" },
-        { Restaurant: "Dragon Wok", Cuisine: "Chinese", Price: "22", Rating: "4.2", OpenDate: "2022-01-18" },
-        { Restaurant: "Mediterranean", Cuisine: "Greek", Price: "32", Rating: "4.4", OpenDate: "2021-09-22" },
-        { Restaurant: "Thai Orchid", Cuisine: "Thai", Price: "27", Rating: "4.6", OpenDate: "2022-03-15" },
-        { Restaurant: "Brazilian Grill", Cuisine: "Brazilian", Price: "38", Rating: "4.5", OpenDate: "2021-10-08" },
-      ]
-      restaurantData.forEach((row) => addRow(row))
-    }
-
-    // Employee Performance
-    else if (schemaFieldNames.includes("employee") || schemaFieldNames.includes("department")) {
-      const employeeData = [
-        {
-          Employee: "John Smith",
-          Department: "Sales",
-          Performance: "85",
-          Satisfaction: "4.2",
-          ReviewDate: "2023-02-15",
-        },
-        {
-          Employee: "Sarah Johnson",
-          Department: "Marketing",
-          Performance: "92",
-          Satisfaction: "4.5",
-          ReviewDate: "2023-02-16",
-        },
-        {
-          Employee: "Michael Brown",
-          Department: "Engineering",
-          Performance: "88",
-          Satisfaction: "4.0",
-          ReviewDate: "2023-02-17",
-        },
-        { Employee: "Emily Davis", Department: "HR", Performance: "90", Satisfaction: "4.7", ReviewDate: "2023-02-18" },
-        {
-          Employee: "David Wilson",
-          Department: "Sales",
-          Performance: "78",
-          Satisfaction: "3.8",
-          ReviewDate: "2023-02-19",
-        },
-        {
-          Employee: "Jessica Taylor",
-          Department: "Marketing",
-          Performance: "86",
-          Satisfaction: "4.3",
-          ReviewDate: "2023-02-20",
-        },
-        {
-          Employee: "Andrew Miller",
-          Department: "Engineering",
-          Performance: "94",
-          Satisfaction: "4.1",
-          ReviewDate: "2023-02-21",
-        },
-        {
-          Employee: "Olivia Moore",
-          Department: "HR",
-          Performance: "89",
-          Satisfaction: "4.6",
-          ReviewDate: "2023-02-22",
-        },
-        {
-          Employee: "Robert Chen",
-          Department: "Engineering",
-          Performance: "91",
-          Satisfaction: "4.4",
-          ReviewDate: "2023-02-23",
-        },
-        {
-          Employee: "Amanda Lewis",
-          Department: "Sales",
-          Performance: "83",
-          Satisfaction: "4.0",
-          ReviewDate: "2023-02-24",
-        },
-      ]
-      employeeData.forEach((row) => addRow(row))
+      mappedData.forEach((row) => addRow(row))
     }
 
     // Default fallback data if schema doesn't match any of the above
@@ -319,12 +196,12 @@ export function DataTable() {
 
   if (schema.length === 0) {
     return (
-      <div className="text-center py-16 px-4 bg-muted/10 rounded-xl">
-        <h2 className="text-2xl font-bold tracking-tight mb-4 gradient-heading">Data Entry</h2>
-        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+      <div className="text-center py-8 sm:py-16 px-4 bg-muted/10 rounded-xl">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-4 gradient-heading">Data Entry</h2>
+        <p className="text-sm sm:text-base text-muted-foreground mb-6 max-w-md mx-auto">
           You need to define your schema first before you can add data.
         </p>
-        <Button variant="outline" asChild className="rounded-lg">
+        <Button variant="outline" asChild className="rounded-lg text-sm">
           <a href="#schema">Go to Schema Builder</a>
         </Button>
       </div>
@@ -332,16 +209,18 @@ export function DataTable() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight gradient-heading">Data Entry</h2>
-          <p className="text-muted-foreground mt-2">Add, edit, and manage your data based on the schema you defined.</p>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight gradient-heading">Data Entry</h2>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+            Add, edit, and manage your data based on the schema you defined.
+          </p>
         </div>
         {schema.length > 0 && (
           <Button
             variant="outline"
-            className="gap-2 rounded-lg border-primary/20 bg-primary/5 hover:bg-primary/10"
+            className="gap-2 rounded-lg border-primary/20 bg-primary/5 hover:bg-primary/10 w-full sm:w-auto"
             onClick={loadSampleData}
           >
             <Sparkles className="h-4 w-4 text-primary" />
@@ -359,63 +238,63 @@ export function DataTable() {
       )}
 
       <div className="border rounded-xl overflow-hidden shadow-sm bg-background">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/20 hover:bg-muted/20">
                 {schema.map((field) => (
-                  <TableHead key={field.name} className="font-medium">
+                  <TableHead key={field.name} className="font-medium whitespace-nowrap">
                     {field.name}
                   </TableHead>
                 ))}
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead className="w-[60px] sm:w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.map((row, rowIndex) => (
                 <TableRow key={rowIndex} className="hover:bg-muted/10">
                   {schema.map((field) => (
-                    <TableCell key={field.name}>
+                    <TableCell key={field.name} className="p-2 sm:p-4">
                       <Input
                         type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
                         value={row[field.name] || ""}
                         onChange={(e) => handleInputChange(field.name, e.target.value, rowIndex)}
-                        className="rounded-lg border-muted/60"
+                        className="rounded-lg border-muted/60 text-xs sm:text-sm h-8 sm:h-10 min-w-[80px]"
                       />
                     </TableCell>
                   ))}
-                  <TableCell>
+                  <TableCell className="p-2 sm:p-4">
                     <Button
                       variant="destructive"
                       size="icon"
                       onClick={() => removeRow(rowIndex)}
-                      className="rounded-lg h-9 w-9"
+                      className="rounded-lg h-8 w-8 sm:h-9 sm:w-9"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
               <TableRow className="bg-muted/5 hover:bg-muted/10">
                 {schema.map((field) => (
-                  <TableCell key={field.name}>
+                  <TableCell key={field.name} className="p-2 sm:p-4">
                     <Input
                       type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
                       placeholder={`Enter ${field.name}`}
                       value={newRow[field.name] || ""}
                       onChange={(e) => handleInputChange(field.name, e.target.value)}
-                      className="rounded-lg border-muted/60"
+                      className="rounded-lg border-muted/60 text-xs sm:text-sm h-8 sm:h-10 min-w-[80px]"
                     />
                   </TableCell>
                 ))}
-                <TableCell>
+                <TableCell className="p-2 sm:p-4">
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={handleAddRow}
-                    className="rounded-lg h-9 w-9 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:text-primary"
+                    className="rounded-lg h-8 w-8 sm:h-9 sm:w-9 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:text-primary"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -424,8 +303,8 @@ export function DataTable() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center px-4 py-3 bg-muted/10 rounded-lg border">
-        <p className="text-sm font-medium">
+      <div className="flex flex-col sm:flex-row justify-between items-center px-3 py-2 sm:px-4 sm:py-3 bg-muted/10 rounded-lg border text-center sm:text-left">
+        <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-0">
           {data.length} row{data.length !== 1 ? "s" : ""} in total
         </p>
         <p className="text-xs text-muted-foreground">

@@ -55,17 +55,17 @@ export function SchemaBuilder() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight gradient-heading">Schema Builder</h2>
-          <p className="text-muted-foreground mt-2">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight gradient-heading">Schema Builder</h2>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
             Define the structure of your data by adding fields and specifying their types.
           </p>
         </div>
         <Button
           variant="outline"
-          className="gap-2 rounded-lg border-primary/20 bg-primary/5 hover:bg-primary/10"
+          className="gap-2 rounded-lg border-primary/20 bg-primary/5 hover:bg-primary/10 w-full sm:w-auto"
           onClick={() => {
             // Define multiple schema options
             const schemaOptions = [
@@ -172,28 +172,32 @@ export function SchemaBuilder() {
 
       <Card className="border shadow-sm rounded-xl overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
-          <CardTitle>Add New Field</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Add New Field</CardTitle>
           <CardDescription>Define a new field for your data schema</CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="field-name">Field Name</Label>
+        <CardContent className="pt-4 sm:pt-6">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="field-name" className="text-sm">
+                Field Name
+              </Label>
               <Input
                 id="field-name"
                 placeholder="e.g., age, name, date"
                 value={newField.name}
                 onChange={(e) => setNewField({ ...newField, name: e.target.value })}
-                className="rounded-lg"
+                className="rounded-lg text-sm h-9"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="field-type">Field Type</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="field-type" className="text-sm">
+                Field Type
+              </Label>
               <Select
                 value={newField.type}
                 onValueChange={(value) => setNewField({ ...newField, type: value as "text" | "number" | "date" })}
               >
-                <SelectTrigger id="field-type" className="rounded-lg">
+                <SelectTrigger id="field-type" className="rounded-lg text-sm h-9">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -204,7 +208,7 @@ export function SchemaBuilder() {
               </Select>
             </div>
             <div className="flex items-end">
-              <Button onClick={addField} className="w-full gap-2 rounded-lg">
+              <Button onClick={addField} className="w-full gap-2 rounded-lg text-sm h-9">
                 <Plus className="h-4 w-4" /> Add Field
               </Button>
             </div>
@@ -214,52 +218,52 @@ export function SchemaBuilder() {
 
       <Card className="border shadow-sm rounded-xl overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
-          <CardTitle>Current Schema</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Current Schema</CardTitle>
           <CardDescription>Your data structure will be based on these fields</CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 sm:pt-6">
           {schema.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg">
-              <p className="mb-2 font-medium">No fields defined yet</p>
-              <p className="text-sm">Add some fields above to get started</p>
+            <div className="text-center py-8 sm:py-12 text-muted-foreground bg-muted/30 rounded-lg">
+              <p className="mb-2 font-medium text-sm sm:text-base">No fields defined yet</p>
+              <p className="text-xs sm:text-sm">Add some fields above to get started</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {schema.map((field, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-4 p-4 border rounded-lg bg-background transition-colors hover:bg-muted/10"
+                  className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 border rounded-lg bg-background transition-colors hover:bg-muted/10"
                 >
-                  <div className="flex-1">
-                    <p className="font-medium">{field.name}</p>
-                    <p className="text-sm text-muted-foreground capitalize">{field.type}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm sm:text-base truncate">{field.name}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground capitalize">{field.type}</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() => moveField(index, "up")}
                       disabled={index === 0}
-                      className="rounded-lg h-8 w-8"
+                      className="rounded-lg h-6 w-6 sm:h-8 sm:w-8"
                     >
-                      <MoveUp className="h-4 w-4" />
+                      <MoveUp className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() => moveField(index, "down")}
                       disabled={index === schema.length - 1}
-                      className="rounded-lg h-8 w-8"
+                      className="rounded-lg h-6 w-6 sm:h-8 sm:w-8"
                     >
-                      <MoveDown className="h-4 w-4" />
+                      <MoveDown className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       variant="destructive"
                       size="icon"
                       onClick={() => removeField(index)}
-                      className="rounded-lg h-8 w-8"
+                      className="rounded-lg h-6 w-6 sm:h-8 sm:w-8"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -267,8 +271,10 @@ export function SchemaBuilder() {
             </div>
           )}
         </CardContent>
-        <CardFooter className="bg-muted/10 border-t">
-          <p className="text-sm text-muted-foreground">Note: Changing the schema will clear your existing data.</p>
+        <CardFooter className="bg-muted/10 border-t p-3 sm:p-4">
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Note: Changing the schema will clear your existing data.
+          </p>
         </CardFooter>
       </Card>
     </div>
