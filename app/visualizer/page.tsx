@@ -9,7 +9,7 @@ import { DataTable } from "@/components/data-table"
 import { JsonTools } from "@/components/json-tools"
 import { SchemaBuilder } from "@/components/schema-builder"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { VisualizationPanel } from "@/components/visualization-panel"
+import { EnhancedVisualizationPanel } from "@/components/enhanced-visualization-panel"
 import { useDataStore } from "@/lib/data-store"
 import { Button } from "@/components/ui/button"
 
@@ -75,7 +75,7 @@ export default function VisualizerPage() {
             <DataTable />
           </TabsContent>
           <TabsContent value="visualize" className="p-6 border rounded-xl mt-6 bg-background/50 shadow-sm">
-            <VisualizationPanel />
+            <EnhancedVisualizationPanel />
           </TabsContent>
           <TabsContent value="json" className="p-6 border rounded-xl mt-6 bg-background/50 shadow-sm">
             <JsonTools />

@@ -39,7 +39,11 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="mt-8 w-full max-w-4xl overflow-hidden rounded-xl border bg-background/50 shadow-xl">
-              <img src="/placeholder-upf07.png" alt="DataPlayground Preview" className="w-full object-cover" />
+              <img
+                src="/dataplayground-hero.png"
+                alt="DataPlayground Dashboard showing data visualization with charts and tables"
+                className="w-full object-cover"
+              />
             </div>
           </div>
         </section>
