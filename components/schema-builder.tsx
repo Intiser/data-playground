@@ -67,13 +67,93 @@ export function SchemaBuilder() {
           variant="outline"
           className="gap-2 rounded-lg border-primary/20 bg-primary/5 hover:bg-primary/10"
           onClick={() => {
-            setSchema([
-              { name: "Product", type: "text" },
-              { name: "Category", type: "text" },
-              { name: "Sales", type: "number" },
-              { name: "Rating", type: "number" },
-              { name: "ReleaseDate", type: "date" },
-            ])
+            // Define multiple schema options
+            const schemaOptions = [
+              // Product Sales Schema
+              [
+                { name: "Product", type: "text" },
+                { name: "Category", type: "text" },
+                { name: "Sales", type: "number" },
+                { name: "Rating", type: "number" },
+                { name: "ReleaseDate", type: "date" },
+              ],
+              // Weather Data Schema
+              [
+                { name: "Location", type: "text" },
+                { name: "Season", type: "text" },
+                { name: "Temperature", type: "number" },
+                { name: "Precipitation", type: "number" },
+                { name: "RecordDate", type: "date" },
+              ],
+              // Student Performance Schema
+              [
+                { name: "Student", type: "text" },
+                { name: "Subject", type: "text" },
+                { name: "Score", type: "number" },
+                { name: "StudyHours", type: "number" },
+                { name: "ExamDate", type: "date" },
+              ],
+              // Website Analytics Schema
+              [
+                { name: "Page", type: "text" },
+                { name: "Device", type: "text" },
+                { name: "Visitors", type: "number" },
+                { name: "ConversionRate", type: "number" },
+                { name: "Date", type: "date" },
+              ],
+              // Financial Data Schema
+              [
+                { name: "Stock", type: "text" },
+                { name: "Sector", type: "text" },
+                { name: "Price", type: "number" },
+                { name: "Volume", type: "number" },
+                { name: "TradeDate", type: "date" },
+              ],
+              // Health Metrics Schema
+              [
+                { name: "Patient", type: "text" },
+                { name: "Condition", type: "text" },
+                { name: "BloodSugar", type: "number" },
+                { name: "Weight", type: "number" },
+                { name: "CheckupDate", type: "date" },
+              ],
+              // Social Media Statistics Schema
+              [
+                { name: "Platform", type: "text" },
+                { name: "ContentType", type: "text" },
+                { name: "Likes", type: "number" },
+                { name: "Comments", type: "number" },
+                { name: "PostDate", type: "date" },
+              ],
+              // Travel Destinations Schema
+              [
+                { name: "Destination", type: "text" },
+                { name: "Region", type: "text" },
+                { name: "Visitors", type: "number" },
+                { name: "Rating", type: "number" },
+                { name: "Season", type: "date" },
+              ],
+              // Restaurant Ratings Schema
+              [
+                { name: "Restaurant", type: "text" },
+                { name: "Cuisine", type: "text" },
+                { name: "Price", type: "number" },
+                { name: "Rating", type: "number" },
+                { name: "OpenDate", type: "date" },
+              ],
+              // Employee Performance Schema
+              [
+                { name: "Employee", type: "text" },
+                { name: "Department", type: "text" },
+                { name: "Performance", type: "number" },
+                { name: "Satisfaction", type: "number" },
+                { name: "ReviewDate", type: "date" },
+              ],
+            ]
+
+            // Randomly select a schema
+            const randomIndex = Math.floor(Math.random() * schemaOptions.length)
+            setSchema(schemaOptions[randomIndex])
             clearData()
           }}
         >
