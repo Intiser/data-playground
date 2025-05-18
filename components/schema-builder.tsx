@@ -14,9 +14,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 
 export function SchemaBuilder() {
-  const { schema, setSchema, clearData } = useDataStore()
+  const { schema, setSchema, clearData, data } = useDataStore()
   const [newField, setNewField] = useState<SchemaField>({ name: "", type: "text" })
   const [error, setError] = useState<string | null>(null)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [fieldToRemove, setFieldToRemove] = useState<number | null>(null)
 
   const addField = () => {
     if (!newField.name.trim()) {
@@ -38,6 +40,8 @@ export function SchemaBuilder() {
     const newSchema = [...schema]
     newSchema.splice(index, 1)
     setSchema(newSchema)
+
+    // Always clear data when schema changes to prevent data inconsistency
     clearData()
   }
 
@@ -52,6 +56,15 @@ export function SchemaBuilder() {
     newSchema[index] = newSchema[newIndex]
     newSchema[newIndex] = temp
     setSchema(newSchema)
+  }
+
+  const handleRemoveField = (index: number) => {
+    if (data.length > 0) {
+      setFieldToRemove(index)
+      setShowConfirmation(true)
+    } else {
+      removeField(index)
+    }
   }
 
   return (
@@ -260,7 +273,7 @@ export function SchemaBuilder() {
                     <Button
                       variant="destructive"
                       size="icon"
-                      onClick={() => removeField(index)}
+                      onClick={() => handleRemoveField(index)}
                       className="rounded-lg h-6 w-6 sm:h-8 sm:w-8"
                     >
                       <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -277,6 +290,33 @@ export function SchemaBuilder() {
           </p>
         </CardFooter>
       </Card>
+      {showConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg max-w-md w-full">
+            <h3 className="text-lg font-bold mb-2">Confirm Field Removal</h3>
+            <p className="text-muted-foreground mb-4">
+              Removing this field will clear all your existing data. Are you sure you want to continue?
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowConfirmation(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (fieldToRemove !== null) {
+                    removeField(fieldToRemove)
+                    setFieldToRemove(null)
+                  }
+                  setShowConfirmation(false)
+                }}
+              >
+                Remove Field
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

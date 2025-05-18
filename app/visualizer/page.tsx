@@ -28,6 +28,17 @@ export default function VisualizerPage() {
     return null
   }
 
+  const closeSheet = () => {
+    const sheetElement = document.querySelector('[data-state="open"]')
+    if (sheetElement) {
+      // Find the close button and click it
+      const closeButton = sheetElement.querySelector('[aria-label="Close"]')
+      if (closeButton instanceof HTMLElement) {
+        closeButton.click()
+      }
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-hero-pattern">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -62,9 +73,7 @@ export default function VisualizerPage() {
                         className="justify-start"
                         onClick={() => {
                           setActiveTab("schema")
-                          document
-                            .querySelector('[data-state="open"]')
-                            ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+                          closeSheet()
                         }}
                       >
                         Schema Builder
@@ -74,9 +83,7 @@ export default function VisualizerPage() {
                         className="justify-start"
                         onClick={() => {
                           setActiveTab("data")
-                          document
-                            .querySelector('[data-state="open"]')
-                            ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+                          closeSheet()
                         }}
                       >
                         Data Entry
@@ -86,9 +93,7 @@ export default function VisualizerPage() {
                         className="justify-start"
                         onClick={() => {
                           setActiveTab("visualize")
-                          document
-                            .querySelector('[data-state="open"]')
-                            ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+                          closeSheet()
                         }}
                       >
                         Visualize
@@ -98,9 +103,7 @@ export default function VisualizerPage() {
                         className="justify-start"
                         onClick={() => {
                           setActiveTab("json")
-                          document
-                            .querySelector('[data-state="open"]')
-                            ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+                          closeSheet()
                         }}
                       >
                         JSON Export/Import

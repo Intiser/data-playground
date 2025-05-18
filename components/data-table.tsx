@@ -18,19 +18,37 @@ export function DataTable() {
 
   const handleAddRow = () => {
     // Validate required fields
+    let hasError = false
+
     for (const field of schema) {
-      if (!newRow[field.name] && field.type !== "number") {
+      if (field.type === "number") {
+        if (newRow[field.name] && isNaN(Number(newRow[field.name]))) {
+          setError(`Field "${field.name}" must be a valid number`)
+          hasError = true
+          break
+        }
+      } else if (!newRow[field.name] || newRow[field.name].trim() === "") {
         setError(`Field "${field.name}" is required`)
-        return
+        hasError = true
+        break
       }
     }
 
-    addRow({ ...newRow })
-    setNewRow({})
-    setError(null)
+    if (!hasError) {
+      addRow({ ...newRow })
+      setNewRow({})
+      setError(null)
+    }
   }
 
   const handleInputChange = (field: string, value: string, rowIndex?: number) => {
+    const fieldSchema = schema.find((f) => f.name === field)
+
+    // Validate number input
+    if (fieldSchema?.type === "number" && value !== "" && isNaN(Number(value))) {
+      return // Don't update if not a valid number
+    }
+
     if (rowIndex !== undefined) {
       // Updating existing row
       const updatedRow = { ...data[rowIndex] }

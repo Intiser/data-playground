@@ -42,6 +42,11 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --chart-1: 262 83% 58%;
+    --chart-2: 220 70% 50%;
+    --chart-3: 160 60% 45%;
+    --chart-4: 30 80% 55%;
+    --chart-5: 340 75% 55%;
   }
 
   .dark {
@@ -108,4 +113,29 @@ body {
 .chart-container svg line,
 .chart-container svg path.domain {
   @apply stroke-border;
+}
+
+/* Improve chart visibility in dark mode */
+.dark .chart-container svg text {
+  @apply fill-current text-foreground;
+}
+
+.dark .chart-container svg line,
+.dark .chart-container svg path.domain {
+  @apply stroke-border opacity-50;
+}
+
+/* Fix tooltip visibility in dark mode */
+.dark [role="tooltip"] {
+  @apply bg-popover text-popover-foreground border-border;
+}
+
+/* Ensure proper contrast for inputs in dark mode */
+.dark input::placeholder {
+  @apply text-muted-foreground opacity-70;
+}
+
+/* Fix focus states for better accessibility */
+:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
 }

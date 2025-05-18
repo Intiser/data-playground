@@ -212,6 +212,14 @@ export function EnhancedVisualizationPanel() {
     }
   }
 
+  // Function to update chart when settings change
+  const updateChartSettings = (chartId: string) => {
+    const chart = charts.find((c) => c.id === chartId)
+    if (chart && chartRefs.current[chartId]) {
+      renderChart(chart)
+    }
+  }
+
   // Render a bar chart
   const renderBarChart = (
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
@@ -1420,14 +1428,12 @@ export function EnhancedVisualizationPanel() {
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-3 sm:p-6 overflow-auto chart-container">
-                    <div className="flex justify-center" ref={(el) => (containerRefs.current[chart.id] = el)}>
+                  <CardContent className="p-3 sm:p-6 overflow-auto chart-container min-h-[400px]">
+                    <div className="flex justify-center h-full" ref={(el) => (containerRefs.current[chart.id] = el)}>
                       <svg
                         ref={(el) => (chartRefs.current[chart.id] = el)}
-                        className="max-w-full"
+                        className="max-w-full h-full"
                         key={chart.id}
-                        width={chartSizes.width}
-                        height={chartSizes.height}
                       ></svg>
                     </div>
                   </CardContent>
@@ -1609,12 +1615,7 @@ export function EnhancedVisualizationPanel() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/10 border-t p-3 sm:p-4">
-                    <Button
-                      onClick={() => {
-                        renderChart(chart)
-                      }}
-                      className="w-full rounded-lg text-sm"
-                    >
+                    <Button onClick={() => updateChartSettings(chart.id)} className="w-full rounded-lg text-sm">
                       Update Chart
                     </Button>
                   </CardFooter>

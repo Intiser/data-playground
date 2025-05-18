@@ -78,11 +78,13 @@ export function ChartStoreProvider({ children }: { children: ReactNode }) {
 
   const loadFromSession = useCallback(() => {
     try {
-      const savedData = sessionStorage.getItem("dataPlaygroundCharts")
-      if (savedData) {
-        const parsed = JSON.parse(savedData)
-        setChartsState(parsed.charts || [])
-        setActiveChartState(parsed.activeChart || null)
+      if (typeof window !== "undefined") {
+        const savedData = sessionStorage.getItem("dataPlaygroundCharts")
+        if (savedData) {
+          const parsed = JSON.parse(savedData)
+          setChartsState(parsed.charts || [])
+          setActiveChartState(parsed.activeChart || null)
+        }
       }
     } catch (error) {
       console.error("Error loading chart data from session storage:", error)
@@ -91,7 +93,9 @@ export function ChartStoreProvider({ children }: { children: ReactNode }) {
 
   const saveToSessionStorage = (charts: ChartConfig[], activeChart: string | null) => {
     try {
-      sessionStorage.setItem("dataPlaygroundCharts", JSON.stringify({ charts, activeChart }))
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("dataPlaygroundCharts", JSON.stringify({ charts, activeChart }))
+      }
     } catch (error) {
       console.error("Error saving chart data to session storage:", error)
     }

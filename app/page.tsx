@@ -38,13 +38,7 @@ export default function LandingPage() {
                 </Button>
               </Link>
             </div>
-            <div className="mt-8 w-full max-w-4xl overflow-hidden rounded-xl border bg-background/50 shadow-xl">
-              <img
-                src="/dataplayground-hero.png"
-                alt="DataPlayground Dashboard showing data visualization with charts and tables"
-                className="w-full object-cover"
-              />
-            </div>
+            {/* Hero image removed as requested */}
           </div>
         </section>
 
@@ -117,7 +111,11 @@ export default function LandingPage() {
                 <h3 className="text-xl font-bold">Visualize Results</h3>
                 <p className="text-muted-foreground">Create interactive charts to visualize your data.</p>
                 <div className="mt-4 w-full rounded-lg border overflow-hidden">
-                  <img src="/chart-example.png" alt="Chart Example" className="w-full h-auto" />
+                  <img
+                    src="/chart-example-dark.png"
+                    alt="Bar chart showing product sales data"
+                    className="w-full h-auto"
+                  />
                 </div>
               </div>
             </div>

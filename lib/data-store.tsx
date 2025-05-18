@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, type ReactNode, useEffect } from "react"
 import type { SchemaField, DataRow, ChartConfig } from "./types"
 
 interface DataStoreContextType {
@@ -107,6 +107,11 @@ export function DataStoreProvider({ children }: { children: ReactNode }) {
         setDataState(parsed.data || [])
         setChartsState(parsed.charts || [])
         setActiveChartState(parsed.activeChart || null)
+        console.log("Data loaded from session storage:", {
+          schemaCount: parsed.schema?.length || 0,
+          dataCount: parsed.data?.length || 0,
+          chartsCount: parsed.charts?.length || 0,
+        })
       }
     } catch (error) {
       console.error("Error loading data from session storage:", error)
@@ -125,6 +130,11 @@ export function DataStoreProvider({ children }: { children: ReactNode }) {
       console.error("Error saving to session storage:", error)
     }
   }
+
+  // Load data from session storage on initial mount
+  useEffect(() => {
+    loadFromSession()
+  }, [loadFromSession])
 
   return (
     <DataStoreContext.Provider
